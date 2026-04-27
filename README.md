@@ -28,13 +28,13 @@
 
 ## 🎬 Demo
 
-<p align="center">
+<!-- <p align="center">
   <video src="fig/demo_video.mp4" controls width="80%">
     <a href="fig/demo_video.mp4">
       <img src="fig/agentic_sandbox.PNG" alt="Safactory Demo — click to view" width="80%">
     </a>
   </video>
-</p>
+</p> -->
 
 ---
 

@@ -396,7 +396,7 @@ def parse_args():
                    help="Disable buffered record storage (buffer is enabled by default)")
     p.add_argument("--buffer-size", type=int, default=100, help="Size of the buffer for storing records")
     p.add_argument("--flush-interval", type=float, default=5.0, help="Interval (in seconds) for flushing buffered records")
-    p.add_argument("--db-path", type=str, default="sqlite://android_envs.db")
+    p.add_argument("--db-path", type=str, default="sqlite://env_trajs.db")
     p.add_argument("--rebuild-table", action=argparse.BooleanOptionalAction, default=False,
                    help="Delete and recreate the SQLite DB file before loading configs (SQLite only)")
 

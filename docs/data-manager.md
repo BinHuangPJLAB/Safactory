@@ -1,83 +1,85 @@
 # Data Manager
 
-All agent interactions are automatically persisted to SQLite during every run. No additional configuration is required — recording starts when `launcher.py` starts and captures every step.
-
----
-
-## Database Location
-
-The default database file is `test_envs.db` in the project root. Override with `--db-path`:
+Safactory records environment configs and step-level interactions during every run. The default CLI database URI is `sqlite://env_trajs.db`; use `--db-path` to write elsewhere.
 
 ```bash
-python launcher.py --db-path /path/to/my_runs.db ...
+python launcher.py \
+  --env-config env/osgym/os_config.yaml \
+  --db-path sqlite://runs/os_eval.db \
+  --llm-base-url http://YOUR_LLM_HOST/v1 \
+  --llm-api-key YOUR_API_KEY \
+  --llm-model YOUR_MODEL
 ```
 
----
+Buffered writes are enabled by default. Use `--disable-buffer` only when you need immediate synchronous writes for debugging.
 
-## Schema
+## Tables
 
-Two tables capture every episode end-to-end:
+Two tables capture each run:
 
-```
-job_environments                    session_steps
-────────────────────────────        ──────────────────────────────────────
-id                                  id
-job_id                              session_id  ──────────► job_environments.id
-env_id                              step_id
-env_name                            env_name
-env_params                          llm_model
-image                               group_id
-group_id                            job_id
-finished                            messages          (full conversation history)
-is_deleted                          response          (model output)
-created_at                          step_reward       (per-step reward signal)
-                                    reward            (cumulative reward)
-                                    env_state         (serialised environment state)
-                                    is_terminal
-                                    is_session_completed
-                                    created_at
+| Table | Purpose |
+|-------|---------|
+| `job_environments` | One row per environment instance. Stores job ID, environment name, config parameters, group ID, finish state, and timestamps. |
+| `session_steps` | One row per agent step. Stores messages, model response, reward, environment state, terminal flags, and timestamps. |
+
+Core relationship:
+
+```text
+job_environments.id  ->  session_steps.session_id
 ```
 
-- **`job_environments`** — one row per environment instance per run. Records the configuration used (Docker image, env params, group ID) and whether the episode finished successfully.
-- **`session_steps`** — one row per agent step. Stores the full message history, model response, per-step and cumulative reward, and the environment state at each step.
+Important `session_steps` fields:
 
----
+| Field | Description |
+|-------|-------------|
+| `step_id` | Step index within the session. |
+| `messages` | Full or truncated OpenAI-style chat history sent to the model. |
+| `response` | Raw model output. |
+| `step_reward` | Per-step reward signal. |
+| `reward` | Cumulative reward. |
+| `env_state` | Serialized environment state or observation metadata. |
+| `is_terminal` | Whether this row ended the episode. |
+| `is_session_completed` | Whether the session completed successfully. |
 
-## Querying the Database
+## Query Examples
 
-Use the standard `sqlite3` CLI:
+List recent environment sessions:
 
 ```bash
-# List recent runs
-sqlite3 test_envs.db "
+sqlite3 env_trajs.db "
   SELECT id, env_name, group_id, finished, created_at
   FROM job_environments
   ORDER BY created_at DESC
   LIMIT 20;"
+```
 
-# Inspect all steps for a specific session
-sqlite3 test_envs.db "
+Inspect a session:
+
+```bash
+sqlite3 env_trajs.db "
   SELECT step_id, step_reward, reward, is_terminal, created_at
   FROM session_steps
-  WHERE session_id = '<your-session-id>'
+  WHERE session_id = '<session-id>'
   ORDER BY step_id;"
+```
 
-# Summarise reward by environment across all runs
-sqlite3 test_envs.db "
+Summarize completed rewards:
+
+```bash
+sqlite3 env_trajs.db "
   SELECT env_name, COUNT(*) AS episodes, AVG(reward) AS avg_reward, MAX(reward) AS best_reward
   FROM session_steps
   WHERE is_session_completed = 1
   GROUP BY env_name;"
 ```
 
----
+## Training Data Use
 
-## Using Data for Training
+Recorded trajectories can be converted into SFT or RL data:
 
-Every recorded trajectory is immediately usable as SFT or RL training data:
+- `messages` stores the conversation context.
+- `response` stores the model action or answer.
+- `step_reward` and `reward` provide reward signals.
+- `env_state` preserves environment-side context for debugging and filtering.
 
-- The `messages` column stores the full conversation history in OpenAI chat format.
-- `step_reward` provides the per-step reward signal needed for GRPO/PPO training.
-- `response` stores the raw model output at each step.
-
-For integration with the Slime RL training loop, see the [RL Training](rl-training.md) guide.
+For online RL, use the Buffer Server described in [RL Training](rl-training.md).

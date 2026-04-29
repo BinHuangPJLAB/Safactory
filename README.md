@@ -1,67 +1,52 @@
 <div align="center">
 
-<h1>🧪 Safactory</h1>
+# Safactory
 
-<p>
-  <strong>A universal AI agent sandbox for evaluation, training data construction, and RL training<br>across ten open-source environments spanning Android, OS, Minecraft, Embodied agents, QA, data processing, scientific discovery, and multimodal reasoning.</strong>
-</p>
+**A universal sandbox for evaluating agents, collecting trajectories, and training with reinforcement learning across OS, Android, Minecraft, embodied, QA, data-processing, scientific-discovery, and multimodal environments.**
 
-<p>
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="docs/environments.md">Environments</a> •
-  <a href="docs/rl-training.md">RL Training</a> •
-  <a href="docs/custom-environment.md">Custom Env</a> •
-  <a href="docs/configuration.md">Configuration</a> •
-  <a href="docs/data-manager.md">Data</a> •
-  <a href="./report.pdf">Report</a>
-</p>
+[Quick Start](#quick-start) |
+[Demo](#demo) |
+[Environments](docs/environments.md) |
+[RL Training](docs/rl-training.md) |
+[Custom Environments](docs/custom-environment.md) |
+[Configuration](docs/configuration.md) |
+[Data](docs/data-manager.md) |
+[Report](report.pdf)
 
-<p>
-  <img src="https://img.shields.io/badge/python-3.9%2B-blue" alt="Python 3.9+">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-  <img src="https://img.shields.io/badge/mode-local%20%7C%20remote-orange" alt="Modes">
-  <img src="https://img.shields.io/badge/LLM-vLLM%20%7C%20SGLang-purple" alt="LLM Backends">
-</p>
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Execution](https://img.shields.io/badge/mode-local%20%7C%20remote-orange)
+![LLM](https://img.shields.io/badge/LLM-OpenAI--compatible-purple)
 
 </div>
 
-<!-- --- -->
-
-<!-- ## 🎬 Demo -->
-
-<!-- <p align="center">
-  <video src="fig/demo_video.mp4" controls width="80%">
-    <a href="fig/demo_video.mp4">
-      <img src="fig/agentic_sandbox.PNG" alt="Safactory Demo — click to view" width="80%">
-    </a>
-  </video>
-</p> -->
-
 ---
 
-## ✨ Why Safactory?
+## Why Safactory
 
-Safactory provides a **unified pipeline** so you can go from model evaluation to RL training without changing your codebase:
+Safactory is an agent sandbox for teams that need one pipeline for evaluation, data generation, and RL training. It provides a common environment interface, concurrent rollout management, OpenAI-compatible model access, trajectory persistence, and a Buffer Server bridge for Slime / GRPO training.
 
-| Goal | What Safactory does |
-|------|---------------------|
-| **Evaluate agents** | Run any LLM against realistic simulated environments and collect reward metrics |
-| **Build training data** | Every interaction is automatically logged to SQLite — ready to be used as SFT / RL data |
-| **RL training** | Feed rollout data directly into Slime-based GRPO training via the built-in Buffer Server |
+| Need | Safactory provides |
+|------|--------------------|
+| Evaluate agents | Run LLM or VLM agents against realistic interactive environments and collect rewards. |
+| Build trajectory data | Persist messages, actions, observations, rewards, and environment state to SQLite. |
+| Train with RL | Stream rollout trajectories into Slime through the built-in Buffer Server. |
+| Add new Env | Access new environments through standard interfaces. |
 
-Key strengths:
+Core features:
 
-- 🌍 **Multi-domain environments** — Android, OS, Minecraft, RoboTrustBench, Embodied ALFRED and more
-- ⚡ **High concurrency** — Environment pool management with async workers for fast parallel rollouts
-- 🔌 **LLM-agnostic** — Works with any OpenAI-compatible endpoint (vLLM, SGLang, OpenAI API)
-- 🏗️ **Two deployment modes** — `local` (single machine) or `remote` (Ray-based cluster)
-- 🧩 **Extensible** — Add a new environment in < 50 lines by implementing a simple `BaseEnv` interface
+- Multi-domain environments: OS, Android, Minecraft, RoboTrustBench, Embodied ALFRED, QA, DABStep, DiscoveryWorld, DeepEyes, Geo3K-VL, and Math500.
+- High-concurrency rollouts through environment pools and async workers.
+- OpenAI-compatible model integration for vLLM, SGLang, hosted APIs, and local proxies.
+- Local single-machine mode and remote RayJob-backed cluster mode.
+- Optional experience extraction and prompt-time experience injection.
 
----
+## Demo
 
-## 🚀 Quick Start
 
-### Installation
+## Quick Start
+
+### Install
 
 ```bash
 git clone https://github.com/AI45Lab/Safactory.git
@@ -69,7 +54,9 @@ cd Safactory
 pip install -r requirements.txt
 ```
 
-### 1 — Evaluate a Model
+Some environments have extra runtime dependencies. See [Supported Environments](docs/environments.md) before running Docker, emulator, VM, or simulator-backed tasks.
+
+### Evaluate a model
 
 ```bash
 python launcher.py \
@@ -77,67 +64,84 @@ python launcher.py \
   --llm-base-url http://YOUR_LLM_HOST/v1 \  # Model service address
   --llm-api-key YOUR_API_KEY \              # API Key
   --llm-model YOUR_MODEL \                  # Model name
-  --pool-size 1                             # Number of concurrent environment instances
+  --pool-size 500                           # Number of concurrent agent instances
 ```
 
-This command will automatically complete environment loading, task scheduling, and evaluation execution.
+This starts the runner, loads the selected environment configuration, schedules tasks, calls the model endpoint, and writes step-level records to SQLite.
 
-**Configuration**
+### Collect trajectory data
 
-* **CLI parameters**: Control model access and concurrent execution（e.g., `--llm-*`, `--pool-size`）
-
-* **YAML configuration**: Defines specific environments and tasks (e.g., dataset, environment parameters)
-
-### 2 — Collect Training Data
-
-Every run automatically records step-level interactions (messages, response, reward, environment state) to `test_envs.db`. Records are available immediately after the run completes.
-
-See [docs/data-manager.md](./docs/data-manager.md) for the database schema and example queries.
-
-### 3 — RL Training (Optional)
-
-With a rollout runner active, start the Slime training loop in a second terminal:
+Every rollout is recorded automatically. The default CLI database path is `sqlite://env_trajs.db`; override it with `--db-path`:
 
 ```bash
-# Terminal 1 — Slime training process (requires Slime installation)
-cd rl && ./run_slime_generator_vl.sh
-
-# Terminal 2 — Buffer Server (launches the Safactory runner and collects rollouts)
-cd rl && ./run_buffer_server.sh
+python launcher.py \
+  --env-config env/osgym/os_config.yaml \
+  --db-path sqlite://runs/os_eval.db \
+  --llm-base-url http://YOUR_LLM_HOST/v1 \
+  --llm-api-key YOUR_API_KEY \
+  --llm-model YOUR_MODEL
 ```
 
-> Terminals 1 and 2 can run on different machines as long as they can communicate.
+See [Data Manager](docs/data-manager.md) for schema details and query examples.
 
-Full setup guide: [docs/rl-training.md](./docs/rl-training.md)
+### Train with RL
 
-### 4 — Experience Extraction & Injection（Optional）
+Safactory integrates with [Slime](https://github.com/THUDM/slime) through a Buffer Server:
 
-Safactory supports optional experience extraction and injection. You can distill reusable lessons from historical trajectories into a local experience library, then inject relevant experience into the agent prompt at the start of a new episode.
+```bash
+# Terminal 1: Slime training process
+cd rl
+./run_slime_generator_vl.sh
 
-For a detailed usage guide, see [docs/experience-extraction-injection.md](docs/experience-extraction-injection.md). 
+# Terminal 2: Safactory Buffer Server and rollout runner
+cd rl
+./run_buffer_server.sh
+```
 
----
+Full instructions are in [RL Training](docs/rl-training.md).
 
-## 📚 Documentation
+## Datasets
 
-| Guide | Description |
-|-------|-------------|
-| [Supported Environments](./docs/environments.md) | Setup, Prerequisites, Docker images, and Configuration|
-| [RL Training](./docs/rl-training.md) | Slime integration, Buffer Server setup, and RL parameters |
-| [Custom Environment](./docs/custom-environment.md) | Step-by-step guide to adding a new environment |
-| [Configuration](./docs/configuration.md) | Full CLI reference and `config.yaml` schema |
-| [Data Manager](./docs/data-manager.md) | Database schema and SQLite query examples |
-| [Report](./report.pdf) | Project report PDF |
+Safactory can generate reusable trajectory datasets. The public OS trajectory release is available on Hugging Face:
 
----
+- [AI45Research/SATraj-OS](https://huggingface.co/datasets/AI45Research/SATraj-OS), a Safactory-generated OS trajectory dataset for agent training and analysis.
 
-## 🤝 Contributing
 
-Contributions for new environments, bug fixes, and documentation improvements are welcome.
+## Documentation
 
-1. Fork the repository
-2. Implement your environment under `env/your_env_name/`
-3. Add a config YAML and a brief `README.md` in the same directory
-4. Open a Pull Request
+| Guide | What it covers |
+|-------|----------------|
+| [Configuration](docs/configuration.md) | CLI flags, manager YAML, and environment YAML format. |
+| [Supported Environments](docs/environments.md) | Environment registry names, prerequisites, and setup links. |
+| [Data Manager](docs/data-manager.md) | SQLite schema, storage behavior, and query examples. |
+| [RL Training](docs/rl-training.md) | Slime integration, Buffer Server setup, and RL variables. |
+| [Custom Environment](docs/custom-environment.md) | Minimal `BaseEnv` implementation and registration flow. |
+| [Experience Extraction and Injection](docs/experience-extraction-injection.md) | Reusing historical trajectories as prompt-time experience. |
 
-For questions and bug reports, please use the issue tracker.
+## Architecture
+
+![Safactory architecture](fig/overview.png)
+
+At a high level, `launcher.py` loads environment YAML files, starts or connects to environment services, sends observations to an OpenAI-compatible model endpoint, records every interaction through the data manager, and optionally forwards completed rollouts to RL training.
+
+## Contributing
+
+Contributions are welcome for new environments, bug fixes, documentation improvements, and reproducible examples.
+
+1. Fork the repository.
+2. Add or update an environment under `env/<name>/`.
+3. Include a YAML config and a short README for environment-specific dependencies.
+4. Run a local smoke test with `launcher.py`.
+5. Open a pull request with the setup notes and expected behavior.
+
+## Citation
+
+If Safactory or Safactory-generated datasets are useful in your work, cite the repository and the specific dataset or report you used.
+
+```bibtex
+@misc{safactory,
+  title = {Safactory: A Universal AI Agent Sandbox for Evaluation, Data Construction, and RL Training},
+  howpublished = {\url{https://github.com/AI45Lab/Safactory}},
+  year = {2026}
+}
+```

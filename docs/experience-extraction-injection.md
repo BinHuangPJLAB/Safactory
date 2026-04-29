@@ -1,30 +1,31 @@
 # Experience Extraction and Injection
 
-Safactory can reuse past trajectories in two stages:
+Safactory can reuse historical trajectories as prompt-time experience. The workflow has two stages:
 
-- **Experience extraction** reads historical trajectories from the database and summarizes reusable lessons into a local experience library.
-- **Experience injection** loads that library at episode start and appends relevant experience to the agent prompt.
+1. Extract reusable lessons from recorded trajectories.
+2. Inject relevant lessons into future episodes.
 
+## Files
 
-## Files You Need
+| File or directory | Purpose |
+|-------------------|---------|
+| `exp_service/exp_service_config.example.yaml` | Example extraction-service config. |
+| `core/exp/config.yaml` | Runtime prompt-injection config used by `launcher.py`. |
+| `experiences/` | Suggested output directory for extracted lessons. |
 
-- `exp_service_config.yaml`: config for the extraction service
-- `core/exp/config.yaml`: config for prompt-time experience injection
-- `experiences/`: the generated experience library directory
+## Extract Experiences
 
-## 1. Extract Experiences
-
-Make sure your historical runs have already been written to the Safactory database, then run:
+Run extraction after you have trajectory data in the Safactory database:
 
 ```bash
-python3 -m exp_service run-once --config exp_service_config.yaml
+python3 -m exp_service run-once --config exp_service/exp_service_config.example.yaml
 ```
 
-This command reads trajectories from the database and writes experience files into the directory configured by `exp_service_config.yaml`.
+Copy the example config before using it for real experiments, then set the source database, output directory, model endpoint, and extraction options.
 
-## 2. Enable Experience Injection
+## Enable Prompt Injection
 
-Edit `core/exp/config.yaml` and point it to the same experience directory:
+Update `core/exp/config.yaml`:
 
 ```yaml
 enabled: true
@@ -34,26 +35,32 @@ mode: template
 embedding_model: null
 ```
 
-Common modes:
+Supported modes:
 
-- `template`: selects the highest-ranked experience templates
-- `ucb`: uses a simple bandit strategy based on usage feedback
-- `contextual_ucb`: uses task text plus feedback history to choose one experience
+| Mode | Behavior |
+|------|----------|
+| `template` | Selects high-ranked experience templates. |
+| `ucb` | Uses a simple bandit strategy with usage feedback. |
+| `contextual_ucb` | Uses task text and feedback history to choose experience. |
 
-If you want to turn the feature off again, set `enabled: false`.
+Set `enabled: false` to disable injection.
 
-## 3. Run Safactory With Injection
+## Run With Injection
 
-By default, `launcher.py` reads `core/exp/config.yaml`. A normal run will automatically use experience injection when `enabled: true`.
-
-If you want to override the config path for one run, use:
+`launcher.py` reads `core/exp/config.yaml` by default. Use `--exp-config` to point at another file:
 
 ```bash
-python3 launcher.py --exp-config ./core/exp/config.yaml
+python3 launcher.py \
+  --env-config env/osgym/os_config.yaml \
+  --exp-config ./core/exp/config.yaml \
+  --llm-base-url http://YOUR_LLM_HOST/v1 \
+  --llm-api-key YOUR_API_KEY \
+  --llm-model YOUR_MODEL
 ```
 
-## 4. Practical Tips
+## Practical Notes
 
-- Keep the extraction output directory and the injection `dir` setting consistent.
-- Start with `mode: template` if you want the most predictable behavior.
-- Use a separate experience directory for experiments if you do not want to mix statistics across runs.
+- Keep the extraction output directory and injection `dir` consistent.
+- Start with `mode: template` for predictable behavior.
+- Use separate experience directories for separate experiments to avoid mixing feedback statistics.
+- Version experience libraries alongside the dataset or model run that produced them.

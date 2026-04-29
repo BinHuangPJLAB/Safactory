@@ -22,7 +22,7 @@
 
 ---
 
-## Why Safactory
+## <a id="why-safactory"></a>✨ Why Safactory
 
 Safactory is an agent sandbox for teams that need one pipeline for evaluation, data generation, and RL training. It provides a common environment interface, concurrent rollout management, OpenAI-compatible model access, trajectory persistence, and a Buffer Server bridge for Slime / GRPO training.
 
@@ -41,10 +41,17 @@ Core features:
 - Local single-machine mode and remote RayJob-backed cluster mode.
 - Optional experience extraction and prompt-time experience injection.
 
-## Demo
+## <a id="demo"></a>🎬 Demo
 
+<div align="center">
 
-## Quick Start
+https://github.com/user-attachments/assets/4c551b27-ce4d-4fc8-8df6-d6dc8100cc88
+
+*点击播放查看完整演示*
+
+</div>
+
+## <a id="quick-start"></a>🚀 Quick Start
 
 ### Install
 
@@ -100,14 +107,14 @@ cd rl
 
 Full instructions are in [RL Training](docs/rl-training.md).
 
-## Datasets
+## <a id="datasets"></a>📦 Datasets
 
 Safactory can generate reusable trajectory datasets. The public OS trajectory release is available on Hugging Face:
 
 - [AI45Research/SATraj-OS](https://huggingface.co/datasets/AI45Research/SATraj-OS), a Safactory-generated OS trajectory dataset for agent training and analysis.
 
 
-## Documentation
+## <a id="documentation"></a>📚 Documentation
 
 | Guide | What it covers |
 |-------|----------------|
@@ -118,13 +125,13 @@ Safactory can generate reusable trajectory datasets. The public OS trajectory re
 | [Custom Environment](docs/custom-environment.md) | Minimal `BaseEnv` implementation and registration flow. |
 | [Experience Extraction and Injection](docs/experience-extraction-injection.md) | Reusing historical trajectories as prompt-time experience. |
 
-## Architecture
+## <a id="architecture"></a>🏗️ Architecture
 
 ![Safactory architecture](fig/overview.png)
 
 At a high level, `launcher.py` loads environment YAML files, starts or connects to environment services, sends observations to an OpenAI-compatible model endpoint, records every interaction through the data manager, and optionally forwards completed rollouts to RL training.
 
-## Contributing
+## <a id="contributing"></a>🤝 Contributing
 
 Contributions are welcome for new environments, bug fixes, documentation improvements, and reproducible examples.
 
@@ -134,7 +141,7 @@ Contributions are welcome for new environments, bug fixes, documentation improve
 4. Run a local smoke test with `launcher.py`.
 5. Open a pull request with the setup notes and expected behavior.
 
-## Citation
+## <a id="citation"></a>📝 Citation
 
 If Safactory or Safactory-generated datasets are useful in your work, cite the repository and the specific dataset or report you used.
 

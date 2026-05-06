@@ -1,34 +1,40 @@
-# 环境部署说明
-提供两种环境部署方式, 包括:
-- 本地部署
-- Docker 部署
+# Environment Deployment
 
-## 本地部署
+Two deployment modes are provided:
+
+- Local deployment
+- Docker deployment
+
+## Local Deployment
+
 ```bash
-# 1. 创建 conda 环境
+# 1. Create a conda environment
 conda create -n qa-gym python=3.10 -y
 conda activate qa-gym
 
-# 2. 项目需要固定 `starlette` 版本以兼容 FastAPI：
+# 2. Pin `starlette` for FastAPI compatibility:
 echo "starlette>=0.40.0,<0.49.0" > constraints.txt
 
-# 3. 依赖下载
+# 3. Install dependencies
 pip install -r requirements.txt -c constraints.txt
 pip install rayjob_sdk-0.3.11-py3-none-any.whl -c constraints.txt
 pip install "protobuf>=6,<7" openrt -c constraints.txt
 
-# 4. 配置环境变量
-export OPENAI_API_KEY=你的key
-export OPENAI_BASE_URL=你的url
+# 4. Configure environment variables
+export OPENAI_API_KEY=your_key
+export OPENAI_BASE_URL=your_url
 ```
 
+## Docker Deployment
 
-## Docker 部署
-- 使用 Dockerfile 构建镜像(需配置 OPENAI 环境变量)
+- Build the image with the Dockerfile. The OPENAI environment variables must be configured.
+
 ```bash
 docker build -f ./env/qagym/Dockerfile -t qa-gym:1.3 .
 ```
-- 直接拉取镜像
+
+- Pull the image directly:
+
 ```bash
 docker pull registry.h.pjlab.org.cn/ailab-evobox-evobox_cpu/qa-gym:1.3
 ```

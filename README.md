@@ -2,6 +2,10 @@
 
 # Safactory
 
+<p align="center">
+    <a href="README_CN.md">中文</a> &nbsp ｜ &nbsp English
+</p>
+
 **A universal sandbox for evaluating agents, collecting trajectories, and training with reinforcement learning across OS, Android, Minecraft, embodied, QA, data-processing, scientific-discovery, and multimodal environments.**
 
 [Quick Start](#quick-start) |

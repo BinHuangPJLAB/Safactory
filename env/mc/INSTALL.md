@@ -1,313 +1,334 @@
-# MCGym 环境安装指南
+# MCGym Environment Installation Guide
 
-## 📦 安装方式
+## 📦 Installation Options
 
-### 方式 1：使用 requirements.txt（推荐）
+### Option 1: Use requirements.txt (recommended)
 
 ```bash
 cd /fs-computility-new/nuclear/leishanzhe/repo/AIEvoBox/env/mc
 pip install -r requirements.txt
 ```
 
-### 方式 2：安装 MineStudio（开发模式）
+### Option 2: Install MineStudio in development mode
 
 ```bash
 cd /fs-computility-new/nuclear/leishanzhe/repo/AIEvoBox/env/mc/MineStudio
 pip install -e .
 ```
 
-### 方式 3：仅安装关键依赖
+### Option 3: Install only key dependencies
 
 ```bash
-# 最小安装
+# Minimal install
 pip install minecraft-data rich pyyaml pillow numpy
 
-# 如果需要完整功能
+# Full functionality
 pip install -r requirements.txt
 ```
 
-## 🔧 依赖说明
+## 🔧 Dependency Notes
 
-### 核心依赖
+### Core Dependencies
 
-- **minecraft-data** - Minecraft 数据访问库（必需）
-- **rich** - 美化输出
-- **pyyaml** - YAML 配置解析
-- **pillow** - 图像处理
-- **numpy** - 数值计算
+- **minecraft-data** - Minecraft data access library, required
+- **rich** - Pretty console output
+- **pyyaml** - YAML config parsing
+- **pillow** - Image processing
+- **numpy** - Numerical computing
 
-### MineStudio 依赖
+### MineStudio Dependencies
 
-完整的 MineStudio 依赖列表见 `requirements.txt`，包括：
-- PyTorch 及相关库
+The full MineStudio dependency list is in `requirements.txt`, including:
+
+- PyTorch and related libraries
 - Gymnasium/Gym
-- 各种回调和工具库
+- Various callbacks and utility libraries
 
-## ✅ 验证安装
+## ✅ Verify Installation
 
-### 快速测试
+### Quick Test
 
 ```bash
 cd /fs-computility-new/nuclear/leishanzhe/repo/AIEvoBox
 python env/mc/test/test_mc_env_simple.py
 ```
 
-预期输出应该显示大部分测试通过。
+The expected output should show most tests passing.
 
-### 完整测试
+### Full Test
 
 ```bash
-# 安装所有依赖后
+# After installing all dependencies
 python env/mc/test/test_mc_env.py
 ```
 
-### Python 检查
+### Python Check
 
 ```python
-# 测试基本导入
+# Test basic imports
 import minecraft_data
 from env.mc.mc_env import MCGym
-print("✓ 安装成功！")
+print("✓ Installed successfully!")
 ```
 
-## ⚠️ 常见问题
+## ⚠️ Common Issues
 
-### 0. xvfb-run 命令未找到错误
+### 0. `xvfb-run` command not found
 
-**问题**：运行环境时报错：
-```
+**Issue**: Running the environment reports:
+
+```text
 xvfb-run: command not found
 ```
-或者完整错误信息：
-```
+
+or the full error:
+
+```text
 /fs-computility-new/nuclear/leishanzhe/repo/AIEvoBox/env/mc/MineStudio/minestudio/simulator/minerl/env/launchClient.sh: line 38: xvfb-run: command not found
 ```
 
-**原因**：
-- 缺少 Xvfb (X Virtual Framebuffer)，这是在无显示器的服务器环境中运行 Minecraft 图形界面所必需的系统依赖
+**Cause**:
 
-**解决方案**：
+- Xvfb (X Virtual Framebuffer) is missing. It is a required system dependency for running the Minecraft GUI in a headless server environment.
 
-根据你的 Linux 发行版安装 xvfb：
+**Solution**:
 
-**Ubuntu/Debian 系统：**
+Install xvfb according to your Linux distribution:
+
+**Ubuntu/Debian:**
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y xvfb
 ```
 
-**CentOS/RHEL 系统：**
+**CentOS/RHEL:**
+
 ```bash
 sudo yum install -y xorg-x11-server-Xvfb
 ```
 
-**Fedora 系统：**
+**Fedora:**
+
 ```bash
 sudo dnf install -y xorg-x11-server-Xvfb
 ```
 
-**验证安装：**
+**Verify installation:**
+
 ```bash
 which xvfb-run
-# 应该输出: /usr/bin/xvfb-run
+# Expected output: /usr/bin/xvfb-run
 ```
 
-安装完成后重新运行你的脚本即可。
+Run your script again after installation.
 
-### 1. 环境未注册错误
+### 1. Environment not registered
 
-**问题**：运行 `base_eval.py` 时报错：
+**Issue**: Running `base_eval.py` reports:
+
+```text
+Program failed: environment 'mc_gym' is not registered. Please register it with the @register_env decorator first.
 ```
-程序运行失败：环境 'mc_gym' 未注册，请先使用 @register_env 装饰器注册
-```
 
-**原因**：
-- Python 装饰器 `@register_env` 只有在模块被导入时才会执行
-- `base_eval.py` 没有导入 `MCGym` 类，导致装饰器未执行，环境未注册
+**Cause**:
 
-**解决方案**：
+- The Python decorator `@register_env` only runs when the module is imported.
+- `base_eval.py` did not import the `MCGym` class, so the decorator never ran and the environment was not registered.
 
-在 `AIEvoBox/examples/base_eval.py` 中添加导入（**已修复**）：
+**Solution**:
+
+Add this import in `AIEvoBox/examples/base_eval.py` (**already fixed**):
 
 ```python
-from env.mc.mc_env import MCGym  # 导入 Minecraft 环境来注册
+from env.mc.mc_env import MCGym  # Import the Minecraft environment for registration
 ```
 
-**验证**：
+**Verify**:
+
 ```bash
 cd /fs-computility-new/nuclear/leishanzhe/repo/AIEvoBox
 bash examples/run_1_mc_envs.sh
 ```
 
-运行后应该看到 `mc_gym` 在已注册环境列表中：
-```
-已注册的环境类型：['android_gym', 'core_git_env', 'embodied_alfred', 'mc_gym']
+After running, `mc_gym` should appear in the registered environment list:
+
+```text
+Registered environment types: ['android_gym', 'core_git_env', 'embodied_alfred', 'mc_gym']
 ```
 
 ---
 
-### 2. ModuleNotFoundError: No module named 'minecraft_data'
+### 2. `ModuleNotFoundError: No module named 'minecraft_data'`
 
-**问题**：缺少 minecraft_data 模块
+**Issue**: The `minecraft_data` module is missing.
 
-**解决方案**：
+**Solution**:
+
 ```bash
 pip install minecraft-data
 ```
 
-### 3. gym 安装失败 (import gym 错误)
+### 3. gym installation failure / import gym error
 
-**问题**：`ModuleNotFoundError: No module named 'gym'`
+**Issue**: `ModuleNotFoundError: No module named 'gym'`
 
-MineStudio 内部代码使用了 `import gym`，但 gym 已停止维护且与新版 setuptools 不兼容。
+MineStudio internal code uses `import gym`, but gym is no longer maintained and is incompatible with newer setuptools versions.
 
-**解决方案**：
+**Solution**:
 
-我们使用 gymnasium (gym 的维护版本) + 兼容层：
+Use gymnasium, the maintained version of gym, plus a compatibility layer:
 
 ```bash
-# 安装 gymnasium 和兼容层
+# Install gymnasium and compatibility layer
 pip install gymnasium>=0.26.0 shimmy[gym-v21]>=0.2.1
 ```
 
-`mc_env.py` 中已自动处理兼容性，将 gymnasium 映射为 gym 模块。
+`mc_env.py` already handles compatibility by mapping gymnasium to the gym module.
 
-### 4. CUDA 运行时错误 (gpu_utils.py)
+### 4. CUDA runtime error (`gpu_utils.py`)
 
-**问题**：`ImportError: cannot import name 'cuda' from 'cuda'`
+**Issue**: `ImportError: cannot import name 'cuda' from 'cuda'`
 
-这是 MineStudio 运行 Minecraft 模拟器时的 GPU 相关问题。
+This is a GPU-related issue when MineStudio runs the Minecraft simulator.
 
-**原因**：
-- `cuda-python` 包安装不正确
-- 或者系统没有可用的 CUDA 环境
+**Cause**:
 
-**解决方案**：
+- The `cuda-python` package is not installed correctly.
+- Or the system has no available CUDA environment.
 
-#### 选项 A: 安装 CUDA 支持（推荐，如果有 NVIDIA GPU）
+**Solution**:
+
+#### Option A: Install CUDA support (recommended when an NVIDIA GPU is available)
 
 ```bash
-# 1. 确保系统安装了 CUDA Toolkit (11.x 或 12.x)
-nvidia-smi  # 检查 CUDA 版本
+# 1. Make sure CUDA Toolkit 11.x or 12.x is installed
+nvidia-smi  # Check CUDA version
 
-# 2. 安装对应版本的 cuda-python
+# 2. Install the matching cuda-python package
 pip install cuda-python
 
-# 3. 验证安装
+# 3. Verify installation
 python -c "from cuda import cuda, cudart; print('CUDA OK')"
 ```
 
-#### 选项 B: CPU 模式运行（如果没有 GPU）
+#### Option B: Run in CPU mode (when no GPU is available)
 
-目前 MineStudio 默认需要 GPU。如果需要 CPU 模式，需要修改 MineStudio 配置或使用模拟测试。
+MineStudio currently requires GPU by default. CPU mode requires modifying the MineStudio config or using simulated tests.
 
-**测试结果说明**：
-- ✓ 环境初始化成功 - 所有 Python 依赖已解决
-- ✗ 模拟器运行失败 - 需要解决 CUDA 环境问题
+**Test result notes**:
 
-### 5. Java JAXB 错误 (Minecraft 运行时)
+- ✓ Environment initialization succeeded: all Python dependencies are resolved.
+- ✗ Simulator execution failed: CUDA environment still needs to be fixed.
 
-**问题**：`java.lang.NoClassDefFoundError: javax/xml/bind/JAXBException`
+### 5. Java JAXB error at Minecraft runtime
 
-**原因**：
-- JAXB (Java XML Binding) 在 Java 9+ 中被移除
-- Minecraft Malmo 需要 JAXB 来解析 XML 配置
+**Issue**: `java.lang.NoClassDefFoundError: javax/xml/bind/JAXBException`
 
-**解决方案：使用 Java 8 (推荐)**
+**Cause**:
+
+- JAXB (Java XML Binding) was removed in Java 9+.
+- Minecraft Malmo requires JAXB to parse XML configuration.
+
+**Solution: use Java 8 (recommended)**
 
 ```bash
-# 1. 检查当前 Java 版本
+# 1. Check current Java version
 java -version
 
-# 2. 安装 Java 8
+# 2. Install Java 8
 sudo apt-get install openjdk-8-jdk
 
-# 3. 设置 Java 8 为默认
+# 3. Set Java 8 as default
 sudo update-alternatives --config java
-# 选择 java-8 选项
+# Select the java-8 option
 
-# 4. 验证
-java -version  # 应该显示 1.8.x
+# 4. Verify
+java -version  # Should show 1.8.x
 
-# 或者，临时使用 Java 8
+# Or temporarily use Java 8
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 export PATH=$JAVA_HOME/bin:$PATH
 ```
 
-**替代方案：在 Java 11+ 中添加 JAXB**
+**Alternative: add JAXB in Java 11+**
 
-如果必须使用 Java 11+，需要在启动时添加 JAXB 模块：
+If Java 11+ must be used, add the JAXB module when launching:
 
 ```bash
-# 修改 MineStudio 的 launchClient.sh
-# 添加 --add-modules java.xml.bind 参数
+# Modify MineStudio's launchClient.sh
+# Add the --add-modules java.xml.bind argument
 ```
 
-### 6. 动作格式转换问题
+### 6. Action format conversion issues
 
-**问题 A**：`TypeError: string indices must be integers` 在 `action["buttons"]`
+**Issue A**: `TypeError: string indices must be integers` at `action["buttons"]`
 
-**原因**：
-- `MCGym.step(action)` 接收的是字符串格式的 action（来自 LLM）
-- `MinecraftSim.step()` 期望的是字典格式的 action（包含 `buttons` 和 `camera` 键）
+**Cause**:
 
-**问题 B**：`AttributeError: 'int' object has no attribute 'ndim'`
+- `MCGym.step(action)` receives an action in string format from the LLM.
+- `MinecraftSim.step()` expects a dictionary action with `buttons` and `camera` keys.
 
-**原因**：
-- `MinecraftSim` 内部的 `action_mapper.to_factored()` 期望 `action["camera"]` 是 numpy 数组
-- `ActionFromLLMConverter` 默认返回 int 类型
+**Issue B**: `AttributeError: 'int' object has no attribute 'ndim'`
 
-**问题 C**：`IndexError: index 220 is out of bounds for axis 0 with size 121`
+**Cause**:
 
-**原因**：
-- `ActionFromLLMConverter` 使用 **21×21=441** camera bins（用于 LLM 输出）
-- `MinecraftSim.action_mapper` 期望 **11×11=121** camera bins（VPT 格式）
-- Camera 索引不匹配导致越界
+- `MinecraftSim` internally expects `action["camera"]` to be a numpy array in `action_mapper.to_factored()`.
+- `ActionFromLLMConverter` returns int values by default.
 
-**解决方案**：
+**Issue C**: `IndexError: index 220 is out of bounds for axis 0 with size 121`
 
-`mc_env.py` 已经正确配置了动作转换器：
+**Cause**:
+
+- `ActionFromLLMConverter` uses **21×21=441** camera bins for LLM output.
+- `MinecraftSim.action_mapper` expects **11×11=121** camera bins in VPT format.
+- The camera index mismatch causes an out-of-bounds error.
+
+**Solution**:
+
+`mc_env.py` already configures the action converter correctly:
 
 ```python
-# 初始化转换器（在 __init__ 中）
+# Initialize converter in __init__
 self.action_converter = ActionFromLLMConverter(
     hfov_deg=self.current_hfov,
     vfov_deg=self.current_vfov,
-    return_numpy=True,      # ⭐ 返回 numpy 数组格式
-    map_camera_to_11=True   # ⭐ 将 21×21 映射到 11×11 (VPT)
+    return_numpy=True,      # Return numpy array format
+    map_camera_to_11=True   # Map 21×21 to 11×11 (VPT)
 )
 
-# 在 step() 中自动转换字符串 action
+# Automatically convert string actions in step()
 if isinstance(action, str):
-    image_shape = self.obs_size  # 从配置获取
+    image_shape = self.obs_size  # Read from config
     action_dict = self.action_converter.convert(action, image_shape)
 else:
     action_dict = action
 ```
 
-### 7. MinecraftSim 返回值类型问题
+### 7. MinecraftSim return type issues
 
-**问题**：`AttributeError: 'tuple' object has no attribute 'obs'`
+**Issue**: `AttributeError: 'tuple' object has no attribute 'obs'`
 
-**原因**：
-- `MinecraftSim.reset()` 和 `MinecraftSim.step()` 可能返回 tuple 或对象
-- 不同版本的 MineStudio 可能有不同的返回值格式
+**Cause**:
 
-**解决方案**：
+- `MinecraftSim.reset()` and `MinecraftSim.step()` may return either tuples or objects.
+- Different MineStudio versions may use different return formats.
 
-`mc_env.py` 已经处理了这个兼容性问题：
+**Solution**:
+
+`mc_env.py` already handles this compatibility:
 
 ```python
-# reset() 处理 tuple 或对象
+# reset() handles tuple or object
 if isinstance(result, tuple):
     obs, info = result if len(result) == 2 else (result[0], {})
 else:
     obs = result.obs if hasattr(result, 'obs') else result
     info = result.info if hasattr(result, 'info') else {}
 
-# step() 处理不同长度的 tuple
+# step() handles tuples of different lengths
 if isinstance(result, tuple):
-    # 支持 (obs, reward, done, info) 或 (obs, reward, terminated, truncated, info)
+    # Supports (obs, reward, done, info) or (obs, reward, terminated, truncated, info)
     if len(result) == 4:
         obs, reward, done, info = result
         terminated = done
@@ -316,88 +337,96 @@ if isinstance(result, tuple):
         obs, reward, terminated, truncated, info = result
 ```
 
-### 8. Minecraft 运行时警告（可忽略）
+### 8. Minecraft runtime warnings that can be ignored
 
-以下错误和警告是**正常的**，不影响模拟器功能：
+The following errors and warnings are **normal** and do not affect simulator functionality:
 
-#### ✅ 可以忽略的消息：
+#### ✅ Messages that can be ignored
 
-```
+```text
 ERROR : Couldn't load Narrator library
 ```
-- **说明**：文本朗读功能，模拟器不需要
 
-```
+- **Description**: Text narration is not needed by the simulator.
+
+```text
 Error starting SoundSystem
 Failed to open OpenAL device
 ```
-- **说明**：无头服务器环境没有音频设备，正常现象
 
-```
+- **Description**: Headless servers have no audio device; this is normal.
+
+```text
 Unable to load minecraft:optifine/ctm/default/empty.png
 Missing CTM sprite
 ```
-- **说明**：OptiFine 可选材质，不影响功能
 
-```
+- **Description**: Optional OptiFine texture; does not affect functionality.
+
+```text
 Could not authorize you against Realms server
 ```
-- **说明**：Minecraft Realms 在线功能，模拟器不需要
 
-```
+- **Description**: Minecraft Realms online features are not needed by the simulator.
+
+```text
 Ambiguity between arguments [teleport, ...]
 ```
-- **说明**：Minecraft 命令解析器的警告，不影响功能
 
-#### ✅ 成功启动的标志：
+- **Description**: Warning from the Minecraft command parser; does not affect functionality.
 
-当看到以下消息时，说明 Minecraft 已成功启动：
+#### ✅ Successful startup signal
 
-```
+Minecraft has started successfully when you see:
+
+```text
 INFO - Minecraft process ready
 INFO - Logging output of Minecraft to ./logs/mc_...log
 ```
 
-### 9. cuda-python 安装失败
+### 9. cuda-python installation failure
 
-**问题**：pip install cuda-python 失败
+**Issue**: `pip install cuda-python` fails.
 
-**解决方案**：
+**Solution**:
+
 ```bash
-# 跳过 cuda-python，其他依赖仍可正常工作
+# Skip cuda-python; other dependencies can still work
 pip install -r requirements.txt --ignore-installed cuda-python || true
 ```
 
-### 10. torch 版本冲突
+### 10. torch version conflict
 
-**问题**：PyTorch 版本不兼容
+**Issue**: PyTorch version incompatibility.
 
-**解决方案**：
+**Solution**:
+
 ```bash
-# 先安装 PyTorch（根据你的 CUDA 版本）
+# Install PyTorch first, matching your CUDA version
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
-# 再安装其他依赖
+# Then install other dependencies
 pip install -r requirements.txt
 ```
 
-### 11. pyrender 安装失败
+### 11. pyrender installation failure
 
-**问题**：pyrender==0.1.25 依赖复杂
+**Issue**: `pyrender==0.1.25` has complex dependencies.
 
-**解决方案**：
+**Solution**:
+
 ```bash
-# 可以尝试更新版本或跳过
-pip install pyrender  # 安装最新版本
-# 或者
+# Try a newer version or skip dependency resolution
+pip install pyrender  # Install latest version
+# Or
 pip install -r requirements.txt --no-deps
 ```
 
-## 📝 依赖列表
+## 📝 Dependency List
 
-主要依赖包括：
+Main dependencies include:
 
-```
+```text
 minecraft-data>=0.7.0
 av
 opencv-python
@@ -410,25 +439,25 @@ pillow
 ray
 transformers
 hydra-core>=1.3.2
-...（完整列表见 requirements.txt）
+... (see requirements.txt for the full list)
 ```
 
-## 🎯 最小安装（仅测试配置）
+## 🎯 Minimal Install for Config Tests
 
-如果只想测试配置和基础功能，不需要完整的 MinecraftSim：
+If you only want to test config and basic functionality without full MinecraftSim:
 
 ```bash
 pip install pyyaml rich pillow numpy pydantic
 ```
 
-然后运行：
+Then run:
+
 ```bash
 python env/mc/test/test_mc_env_simple.py
 ```
 
-## 📚 更多信息
+## 📚 More Information
 
-- [MineStudio 官方文档](./MineStudio/README.md)
-- [测试指南](./test/README.md)
-- [配置说明](./mc_env.yaml)
-
+- MineStudio official documentation: see local `MineStudio/README.md` if MineStudio has been pulled.
+- Test guide: see local `test/README.md` if the test directory is available.
+- Configuration notes: see local `mc_env.yaml` if that config file exists.

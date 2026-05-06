@@ -1,14 +1,15 @@
 # RoboTrustBench
 
-Only 3 tasks are currently retained:
+当前只保留 3 个任务：
 
 - `safety`
 - `robust`
 - `robustd`
 
-## Build the Image
 
-Run from the `AIEvoBox` repository root:
+## 构建镜像
+
+在 `AIEvoBox` 仓库根目录执行：
 
 ```bash
 docker build --network host \
@@ -16,20 +17,21 @@ docker build --network host \
   -t safactory/habitat:robotrustbench-v0.10 .
 ```
 
-## Start the Container
+## 启动容器
+
 
 ```bash
 docker run --it safactory/habitat:robotrustbench-v0.10 /bin/bash
 ```
 
-After entering the container, confirm the code is mounted at `/workspace/AIEvoBox`:
+进入容器后，确认代码已经挂载到 `/workspace/AIEvoBox`：
 
 ```bash
 cd /workspace/AIEvoBox
 python -c "import env.robotrustbench.robotrustbench_env; print('ok')"
 ```
 
-## Start launcher Inside the Container
+## 容器内启动 launcher
 
 ```bash
 python launcher.py \
@@ -47,7 +49,7 @@ python launcher.py \
   --workers 1
 ```
 
-Replaceable config files:
+可替换的配置文件：
 
 - `env/robotrustbench/robotrustbench_safety.yaml`
 - `env/robotrustbench/robotrustbench_robust.yaml`

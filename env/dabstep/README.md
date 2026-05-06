@@ -1,25 +1,27 @@
 # DABStepEnv
 
-DABStep benchmark 的 Gymnasium 环境封装，支持自动数据下载、多进程分片、逐步渲染。
+Gymnasium wrapper for the DABStep benchmark, with automatic data download, multi-process sharding, and step-by-step rendering.
 
-> 本文档假设你已完成 AIEvoBox 的安装，当前工作目录为 `AIEvoBox/`。
+> This guide assumes AIEvoBox is installed and your current working directory is `AIEvoBox/`.
 
 ---
 
-## 快速开始
+## Quick Start
 
-### 第一步：安装官方评测库（可选）
+### Step 1: Install the official evaluator (optional)
+
 ```bash
 pip install git+https://huggingface.co/spaces/adyen/DABstep.git@main
 ```
 
-> 不安装时会自动回退到近似评分，本地调试不影响使用。
+> If it is not installed, the environment falls back to approximate scoring. Local debugging still works.
 
 ---
 
-### 第二步：配置环境参数
+### Step 2: Configure environment parameters
 
-编辑 `env/dabstep/dabstep_config.yaml`：
+Edit `env/dabstep/dabstep_config.yaml`:
+
 ```yaml
 environments:
   - env_name: dabstepgym
@@ -35,18 +37,20 @@ environments:
       timeout: 60
 ```
 
-**数据会在首次运行时自动从 HuggingFace 下载**，无需手动准备。下载后的目录结构：
-```
+**Data is downloaded automatically from Hugging Face on first run**, so no manual preparation is required. The downloaded directory layout is:
+
+```text
 env/dabstep/data/
-├── context/          # CSV/JSON 背景数据
+├── context/          # CSV/JSON background data
 └── tasks/
-    ├── default_tasks.jsonl   # 450 题（无答案，用于提交 leaderboard）
-    └── dev_tasks.jsonl       # 10 题（有答案，用于本地评分）
+    ├── default_tasks.jsonl   # 450 tasks without answers, used for leaderboard submission
+    └── dev_tasks.jsonl       # 10 tasks with answers, used for local scoring
 ```
 
 ---
 
-### 第三步：运行
+### Step 3: Run
+
 ```bash
 python launcher.py \
   --mode local \
@@ -60,34 +64,36 @@ python launcher.py \
 
 ---
 
-### 第四步：查看结果
+### Step 4: Inspect results
 
-每道题运行完毕后，产物写入 `env/dabstep/artifacts/`：
-```
+After each task finishes, artifacts are written to `env/dabstep/artifacts/`:
+
+```text
 artifacts/
 └── dabstep_20260309_193140_<task_id>/
-    ├── env.log             # 完整运行日志
-    ├── trace.jsonl         # 每步 thought / code / output 记录
-    ├── dev_metrics.json    # 评分结果（仅 split=dev 时生成）
-    └── render_step_*.png   # 可视化截图（调用 render() 时生成）
+    ├── env.log             # Full run log
+    ├── trace.jsonl         # Per-step thought / code / output records
+    ├── dev_metrics.json    # Scoring results, generated only for split=dev
+    └── render_step_*.png   # Rendered screenshots, generated when render() is called
 ```
 
-用 `dev` split 时，打开 `dev_metrics.json` 即可查看本地得分。
+When using the `dev` split, open `dev_metrics.json` to view local scores.
 
 ---
 
-## Split 说明
+## Split Notes
 
-| split | 任务数 | 有答案 | 用途 |
-|-------|--------|--------|------|
-| `dev` | 10 | ✅ | 本地调试与评分 |
-| `default` | 450 | ❌ | 正式评测，提交 leaderboard |
+| split | Tasks | Answers | Purpose |
+|-------|-------|---------|---------|
+| `dev` | 10 | Yes | Local debugging and scoring |
+| `default` | 450 | No | Official evaluation and leaderboard submission |
 
 ---
 
-## 扩展：多分片并行
+## Extension: Parallel Sharding
 
-确认单 shard 跑通后，将 `split` 改为 `default`，并在配置中展开多个 shard：
+After a single shard works, change `split` to `default` and expand multiple shards in the config:
+
 ```yaml
 environments:
   - env_name: dabstepgym
@@ -109,37 +115,39 @@ environments:
       limit: 0
       shard_index: 1
       num_shards: 8
-  # shard 2~7 同理
+  # shards 2-7 are configured the same way
 ```
 
-`default` split 按 8 分片后每个 shard 约 **56 题**；`dev` split 的分布：
+After splitting `default` into 8 shards, each shard has about **56 tasks**. The `dev` split distribution is:
 
-| shard_index | 任务数 |
-|-------------|--------|
-| 0, 1 | 2 题 |
-| 2 ~ 7 | 1 题 |
+| shard_index | Tasks |
+|-------------|-------|
+| 0, 1 | 2 tasks |
+| 2 ~ 7 | 1 task |
 
 ---
 
-## Docker 部署（环境tag待补充）
+## Docker Deployment (environment tag TBD)
 
-- 构建镜像
+- Build the image:
+
 ```bash
 docker build -f env/dabstep/Dockerfile -t dabstep:latest .
 ```
 
-- 如需预构建镜像，请替换为你自己的镜像仓库地址，例如：
+- To use a prebuilt image, replace the registry with your own image repository, for example:
+
 ```bash
 docker pull <your-registry>/dabstep:latest
 ```
 
 ---
 
-## 相关链接
+## Related Links
 
-- [DABStep HuggingFace Dataset](https://huggingface.co/datasets/adyen/DABstep)
-- [DABStep 官方评测库](https://huggingface.co/spaces/adyen/DABstep)
+- [DABStep Hugging Face Dataset](https://huggingface.co/datasets/adyen/DABstep)
+- [DABStep official evaluator](https://huggingface.co/spaces/adyen/DABstep)
 
-## 许可证
+## License
 
-本适配器遵循 AIEvoBox 的许可证。DABStep 数据集基于 CC-BY-4.0 协议。
+This adapter follows the AIEvoBox license. The DABStep dataset is licensed under CC-BY-4.0.

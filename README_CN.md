@@ -117,6 +117,8 @@ Safactory 可以生成可复用的轨迹数据集。公开 OS 轨迹发布在 Hu
 
 - [AI45Research/SATraj-OS](https://huggingface.co/datasets/AI45Research/SATraj-OS)，一个由 Safactory 生成、用于智能体训练和分析的 OS 轨迹数据集。
 
+![tax](fig/tax.png)
+
 Safactory 生成的数据也支持智能体安全训练。我们的结果发现了智能体安全 Scaling Law：随着训练规模提升，安全能力可以持续提升，同时保持任务能力，实现安全能力提升且没有安全对齐税。
 
 <table>

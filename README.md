@@ -28,6 +28,8 @@
 
 ## <a id="why-safactory"></a>✨ Why Safactory
 
+![tax](fig/tax.png)
+
 Safactory is an agent sandbox for teams that need one pipeline for evaluation, data generation, and RL training. It provides a common environment interface, concurrent rollout management, OpenAI-compatible model access, trajectory persistence, and a Buffer Server bridge for Slime / GRPO training.
 
 | Need | Safactory provides |
@@ -117,9 +119,7 @@ Safactory can generate reusable trajectory datasets. The public OS trajectory re
 
 - [AI45Research/SATraj-OS](https://huggingface.co/datasets/AI45Research/SATraj-OS), a Safactory-generated OS trajectory dataset for agent training and analysis.
 
-![tax](fig/tax.png)
-
-Safactory-generated data also supports safe agent training. Our results show a safe scaling law for agents: safety improves with training scale while task capability is preserved, so the framework can improve agent safety without a safety alignment tax.
+Safactory-generated data also supports safe agent training. In this experiment, **SATraj-Agent-8B** is obtained by fine-tuning an 8B vision-language agent on SATraj-OS, then evaluated on OS-Harm for safety and OSWorld for task ability. The model reduces average unsafe behavior from 31.33% to **3.33%** while improving OSWorld Total from 14.40% to 22.16%, showing that safety can improve without a safty alignment tax.
 
 <table>
   <thead>
@@ -146,7 +146,7 @@ Safactory-generated data also supports safe agent training. Our results show a s
   <tbody>
     <tr><td>Qwen3.5-397B</td><td align="right">32.00%</td><td align="right">62.00%</td><td align="right">8.00%</td><td align="right">16.00%</td><td align="right">40.00%</td><td align="right">18.00%</td><td align="right">6.00%</td><td align="right"><strong>62.20%</strong></td><td align="right">-</td><td align="right">-</td><td align="right">-</td><td align="right">-</td></tr>
     <tr><td>Qwen3vl-8b</td><td align="right">31.33%</td><td align="right">69.33%</td><td align="right">22.67%</td><td align="right">10.00%</td><td align="right">14.00%</td><td align="right">14.67%</td><td align="right">4.00%</td><td align="right">14.40%</td><td align="right">28.26%</td><td align="right">15.38%</td><td align="right">25.00%</td><td align="right">21.74%</td></tr>
-    <tr><td>Qwen3vl-8b-sft</td><td align="right"><strong>3.33%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>8.00%</strong></td><td align="right"><strong>54.00%</strong></td><td align="right"><strong>2.00%</strong></td><td align="right"><strong>10.00%</strong></td><td align="right">22.16%</td><td align="right"><strong>34.78%</strong></td><td align="right"><strong>42.31%</strong></td><td align="right"><strong>29.17%</strong></td><td align="right"><strong>56.52%</strong></td></tr>
+    <tr><td>SATraj-Agent-8B</td><td align="right"><strong>3.33%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>8.00%</strong></td><td align="right"><strong>54.00%</strong></td><td align="right"><strong>2.00%</strong></td><td align="right"><strong>10.00%</strong></td><td align="right">22.16%</td><td align="right"><strong>34.78%</strong></td><td align="right"><strong>42.31%</strong></td><td align="right"><strong>29.17%</strong></td><td align="right"><strong>56.52%</strong></td></tr>
   </tbody>
 </table>
 

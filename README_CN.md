@@ -123,29 +123,28 @@ Safactory 生成的数据也支持智能体安全训练。我们的结果发现�
   <thead>
     <tr>
       <th rowspan="2">模型</th>
-      <th colspan="4">能力 (OSWorld)</th>
-      <th colspan="6">安全 (RiOSWorld)</th>
+      <th colspan="5">能力 (OSWorld，越高越好)</th>
+      <th colspan="7">安全 (OS-Harm)</th>
     </tr>
     <tr>
       <th>Total</th>
       <th>Chrome</th>
+      <th>GIMP</th>
       <th>OS</th>
       <th>VS Code</th>
-      <th>Total</th>
-      <th>文本</th>
-      <th>网页</th>
-      <th>办公</th>
-      <th>笔记</th>
-      <th>Reddit</th>
+      <th>平均 Unsafe ↓</th>
+      <th>误用 Unsafe ↓</th>
+      <th>误用 Completed ↓</th>
+      <th>注入 Unsafe ↓</th>
+      <th>注入 Completed ↑</th>
+      <th>失控 Unsafe ↓</th>
+      <th>失控 Completed ↑</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td>claude-opus-4.6-thinking</td><td align="right">31.25</td><td align="right">35.00</td><td align="right"><strong>55.00</strong></td><td align="right">15.00</td><td align="right">48.58</td><td align="right">72.41</td><td align="right">35.71</td><td align="right"><strong>63.64</strong></td><td align="right"><strong>100.00</strong></td><td align="right">76.92</td></tr>
-    <tr><td>qwen3.5-plus</td><td align="right">20.00</td><td align="right">35.00</td><td align="right">25.00</td><td align="right">5.00</td><td align="right">51.94</td><td align="right">75.86</td><td align="right"><strong>42.86</strong></td><td align="right"><strong>63.64</strong></td><td align="right">86.96</td><td align="right">80.00</td></tr>
-    <tr><td>kimi-k2.5</td><td align="right"><strong>33.33</strong></td><td align="right"><strong>52.63</strong></td><td align="right">50.00</td><td align="right"><strong>20.00</strong></td><td align="right">32.17</td><td align="right">27.59</td><td align="right">23.81</td><td align="right">59.09</td><td align="right">30.43</td><td align="right"><strong>100.00</strong></td></tr>
-    <tr><td>glm-4.6v</td><td align="right">10.13</td><td align="right">10.53</td><td align="right">15.00</td><td align="right">5.00</td><td align="right"><strong>54.09</strong></td><td align="right"><strong>85.71</strong></td><td align="right">35.71</td><td align="right">2.73</td><td align="right">91.30</td><td align="right">93.33</td></tr>
-    <tr><td>step-3</td><td align="right">18.82</td><td align="right">5.26</td><td align="right">45.00</td><td align="right">15.00</td><td align="right">32.68</td><td align="right">39.29</td><td align="right">33.33</td><td align="right">0.00</td><td align="right">42.86</td><td align="right">90.00</td></tr>
-    <tr><td>intern-s1-pro</td><td align="right">14.28</td><td align="right">15.00</td><td align="right">31.58</td><td align="right">0.00</td><td align="right">38.82</td><td align="right">58.62</td><td align="right">33.33</td><td align="right">4.76</td><td align="right">66.67</td><td align="right">86.67</td></tr>
+    <tr><td>qwen3.5</td><td align="right">62.20%</td><td align="right">-</td><td align="right">-</td><td align="right">-</td><td align="right">-</td><td align="right">32.00%</td><td align="right">62.00%</td><td align="right">8.00%</td><td align="right">16.00%</td><td align="right">40.00%</td><td align="right">18.00%</td><td align="right">6.00%</td></tr>
+    <tr><td>qwen3vl-8b</td><td align="right">14.40%</td><td align="right">28.26%</td><td align="right">15.38%</td><td align="right">25.00%</td><td align="right">21.74%</td><td align="right">31.33%</td><td align="right">69.33%</td><td align="right">22.67%</td><td align="right">10.00%</td><td align="right">14.00%</td><td align="right">14.67%</td><td align="right">4.00%</td></tr>
+    <tr><td>qwen3vl-8b_sft</td><td align="right">22.16%</td><td align="right"><strong>34.78%</strong></td><td align="right"><strong>42.31%</strong></td><td align="right"><strong>29.17%</strong></td><td align="right"><strong>56.52%</strong></td><td align="right"><strong>3.33%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>8.00%</strong></td><td align="right"><strong>54.00%</strong></td><td align="right"><strong>2.00%</strong></td><td align="right"><strong>10.00%</strong></td></tr>
   </tbody>
 </table>
 

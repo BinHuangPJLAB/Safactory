@@ -6,7 +6,7 @@
     <a href="README_CN.md">中文</a> &nbsp ｜ &nbsp English
 </p>
 
-**A universal sandbox for evaluating agents, collecting trajectories, and training with reinforcement learning across OS, Android, Minecraft, embodied, QA, data-processing, scientific-discovery, and multimodal environments.**
+**A next-generation agent infrastructure that integrates evaluation and training, supporting agent evaluation, trajectory collection, and reinforcement learning training across multiple types of environments including OS, Android, Minecraft, embodied AI, QA, data processing, and scientific discovery. It is the first to validate a trustworthy scaling law for agents, achieving improved safety capabilities without an alignment tax.**
 
 [Quick Start](#quick-start) |
 [Demo](#demo) |
@@ -117,6 +117,37 @@ Safactory can generate reusable trajectory datasets. The public OS trajectory re
 
 - [AI45Research/SATraj-OS](https://huggingface.co/datasets/AI45Research/SATraj-OS), a Safactory-generated OS trajectory dataset for agent training and analysis.
 
+Safactory-generated data also supports safe agent training. Our results show a safe scaling law for agents: safety improves with training scale while task capability is preserved, so the framework can improve agent safety without a safety alignment tax.
+
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">Model</th>
+      <th colspan="4">Ability (OSWorld)</th>
+      <th colspan="6">Safety (RiOSWorld)</th>
+    </tr>
+    <tr>
+      <th>Total</th>
+      <th>Chrome</th>
+      <th>OS</th>
+      <th>VS Code</th>
+      <th>Total</th>
+      <th>Text</th>
+      <th>Web</th>
+      <th>Office</th>
+      <th>Note</th>
+      <th>Reddit</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>claude-opus-4.6-thinking</td><td align="right">31.25</td><td align="right">35.00</td><td align="right"><strong>55.00</strong></td><td align="right">15.00</td><td align="right">48.58</td><td align="right">72.41</td><td align="right">35.71</td><td align="right"><strong>63.64</strong></td><td align="right"><strong>100.00</strong></td><td align="right">76.92</td></tr>
+    <tr><td>qwen3.5-plus</td><td align="right">20.00</td><td align="right">35.00</td><td align="right">25.00</td><td align="right">5.00</td><td align="right">51.94</td><td align="right">75.86</td><td align="right"><strong>42.86</strong></td><td align="right"><strong>63.64</strong></td><td align="right">86.96</td><td align="right">80.00</td></tr>
+    <tr><td>kimi-k2.5</td><td align="right"><strong>33.33</strong></td><td align="right"><strong>52.63</strong></td><td align="right">50.00</td><td align="right"><strong>20.00</strong></td><td align="right">32.17</td><td align="right">27.59</td><td align="right">23.81</td><td align="right">59.09</td><td align="right">30.43</td><td align="right"><strong>100.00</strong></td></tr>
+    <tr><td>glm-4.6v</td><td align="right">10.13</td><td align="right">10.53</td><td align="right">15.00</td><td align="right">5.00</td><td align="right"><strong>54.09</strong></td><td align="right"><strong>85.71</strong></td><td align="right">35.71</td><td align="right">2.73</td><td align="right">91.30</td><td align="right">93.33</td></tr>
+    <tr><td>step-3</td><td align="right">18.82</td><td align="right">5.26</td><td align="right">45.00</td><td align="right">15.00</td><td align="right">32.68</td><td align="right">39.29</td><td align="right">33.33</td><td align="right">0.00</td><td align="right">42.86</td><td align="right">90.00</td></tr>
+    <tr><td>intern-s1-pro</td><td align="right">14.28</td><td align="right">15.00</td><td align="right">31.58</td><td align="right">0.00</td><td align="right">38.82</td><td align="right">58.62</td><td align="right">33.33</td><td align="right">4.76</td><td align="right">66.67</td><td align="right">86.67</td></tr>
+  </tbody>
+</table>
 
 ## <a id="documentation"></a>📚 Documentation
 

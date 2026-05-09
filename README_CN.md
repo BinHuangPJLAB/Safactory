@@ -119,7 +119,7 @@ Safactory 可以生成可复用的轨迹数据集。公开 OS 轨迹发布在 Hu
 
 - [AI45Research/SATraj-OS](https://huggingface.co/datasets/AI45Research/SATraj-OS)，一个由 Safactory 生成、用于智能体训练和分析的 OS 轨迹数据集。
 
-Safactory 生成的数据也支持智能体安全训练。本实验使用 SATraj-OS 对 8B 视觉语言智能体进行微调，得到 **SATraj-Agent-8B**，并在 OS-Harm 上评估安全性、在 OSWorld 上评估任务能力。结果显示，SATraj-Agent-8B 将平均 Unsafe 从 31.33% 降至 **3.33%**，同时将 OSWorld Total 从 14.40% 提升至 22.16%，说明安全能力提升没有带来安全对齐税。
+Safactory 生成的数据也支持智能体安全训练。本实验使用 SATraj-OS 对 Qwen3-vl-8B进行微调，得到 **SATraj-Agent-8B**，并在 OS-Harm 上评估安全性、在 OSWorld 上评估任务能力。结果显示，SATraj-Agent-8B 将平均 Unsafe 从 31.33% 降至 **3.33%**，同时将 OSWorld Total 从 14.40% 提升至 22.16%，说明安全能力提升没有带来安全对齐税。
 
 <table>
   <thead>
@@ -146,7 +146,7 @@ Safactory 生成的数据也支持智能体安全训练。本实验使用 SATraj
   <tbody>
     <tr><td>Qwen3.5-397B</td><td align="right">32.00%</td><td align="right">62.00%</td><td align="right">8.00%</td><td align="right">16.00%</td><td align="right">40.00%</td><td align="right">18.00%</td><td align="right">6.00%</td><td align="right"><strong>62.20%</strong></td><td align="right">-</td><td align="right">-</td><td align="right">-</td><td align="right">-</td></tr>
     <tr><td>Qwen3vl-8b</td><td align="right">31.33%</td><td align="right">69.33%</td><td align="right">22.67%</td><td align="right">10.00%</td><td align="right">14.00%</td><td align="right">14.67%</td><td align="right">4.00%</td><td align="right">14.40%</td><td align="right">28.26%</td><td align="right">15.38%</td><td align="right">25.00%</td><td align="right">21.74%</td></tr>
-    <tr><td>SATraj-Agent-8B</td><td align="right"><strong>3.33%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>8.00%</strong></td><td align="right"><strong>54.00%</strong></td><td align="right"><strong>2.00%</strong></td><td align="right"><strong>10.00%</strong></td><td align="right">22.16%</td><td align="right"><strong>34.78%</strong></td><td align="right"><strong>42.31%</strong></td><td align="right"><strong>29.17%</strong></td><td align="right"><strong>56.52%</strong></td></tr>
+    <tr><td>SAModel-OS-8B</td><td align="right"><strong>3.33%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>0.00%</strong></td><td align="right"><strong>8.00%</strong></td><td align="right"><strong>54.00%</strong></td><td align="right"><strong>2.00%</strong></td><td align="right"><strong>10.00%</strong></td><td align="right">22.16%</td><td align="right"><strong>34.78%</strong></td><td align="right"><strong>42.31%</strong></td><td align="right"><strong>29.17%</strong></td><td align="right"><strong>56.52%</strong></td></tr>
   </tbody>
 </table>
 

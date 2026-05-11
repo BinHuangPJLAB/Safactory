@@ -182,9 +182,13 @@ Safactory 生成的数据也支持智能体安全训练。本实验使用 SATraj
 如果 Safactory 或 Safactory 生成的数据集对你的工作有帮助，请引用本仓库以及你使用的具体数据集或报告。
 
 ```bibtex
-@misc{safactory,
-  title = {Safactory: A Universal AI Agent Sandbox for Evaluation, Data Construction, and RL Training},
-  howpublished = {\url{https://github.com/AI45Lab/Safactory}},
-  year = {2026}
+@misc{chen2026safactoryscalableagenticinfrastructure,
+      title={Safactory: A Scalable Agentic Infrastructure for Training Trustworthy Autonomous Intelligence}, 
+      author={Shanghai AI Lab},
+      year={2026},
+      eprint={2605.06230},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2605.06230}, 
 }
 ```

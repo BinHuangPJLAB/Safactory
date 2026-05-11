@@ -182,9 +182,13 @@ Contributions are welcome for new environments, bug fixes, documentation improve
 If Safactory or Safactory-generated datasets are useful in your work, cite the repository and the specific dataset or report you used.
 
 ```bibtex
-@misc{safactory,
-  title = {Safactory: A Universal AI Agent Sandbox for Evaluation, Data Construction, and RL Training},
-  howpublished = {\url{https://github.com/AI45Lab/Safactory}},
-  year = {2026}
+@misc{chen2026safactoryscalableagenticinfrastructure,
+      title={Safactory: A Scalable Agentic Infrastructure for Training Trustworthy Autonomous Intelligence}, 
+      author={Shanghai AI Lab},
+      year={2026},
+      eprint={2605.06230},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2605.06230}, 
 }
 ```

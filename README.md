@@ -15,7 +15,7 @@
 [Custom Environments](docs/custom-environment.md) |
 [Configuration](docs/configuration.md) |
 [Data](docs/data-manager.md) |
-[Report](report.pdf)
+[Report](https://arxiv.org/pdf/2605.06230)
 
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)

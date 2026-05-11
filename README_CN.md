@@ -15,7 +15,7 @@
 [自定义环境](docs/custom-environment_CN.md) |
 [配置](docs/configuration_CN.md) |
 [数据](docs/data-manager_CN.md) |
-[报告](report.pdf)
+[报告](https://arxiv.org/pdf/2605.06230)
 
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)

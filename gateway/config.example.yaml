@@ -1,0 +1,39 @@
+listen_host: 0.0.0.0
+listen_port: 8000
+base_session_path: /v1/sessions
+
+storage_type: sqlite
+storage_config:
+  db_url: sqlite://gateway.db
+
+max_inflight_requests: 2048
+max_active_streams: 1024
+max_queue_size: 4096
+upstream_max_connections: 512
+upstream_http_proxy: null
+upstream_no_proxy:
+  - 127.0.0.1
+  - localhost
+per_llm_route_max_concurrency: 256
+per_session_max_inflight: 8
+
+telemetry:
+  mode: best_effort
+  loss_policy: drop_newest
+  capture_payload: failed_only
+  payload_sample_rate: 0.01
+  redact_sensitive_fields: true
+  batch_size: 200
+  flush_interval_ms: 100
+
+llm_routes:
+  minimax2.5:
+    base_url: http://s-20260304115506-xsb7j.ailab-pj.pjh-service.org.cn/v1/
+    api_key: null
+    supports_stream: true
+    max_concurrency: 256
+  MiniMax-2.7-w8a8:
+    base_url: http://10.140.158.149:15002/v1/
+    api_key: null
+    supports_stream: true
+    max_concurrency: 256

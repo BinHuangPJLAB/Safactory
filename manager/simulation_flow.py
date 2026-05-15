@@ -1,0 +1,199 @@
+from __future__ import annotations
+
+import asyncio
+import logging
+import re
+from typing import Any, Dict, Optional
+from urllib.parse import urlsplit
+
+import requests
+
+from core.data_manager.manager import DataManager
+from core.data_manager.yaml_aggregator import (
+    all_env_yaml_load,
+    is_job_db_processing_done,
+    sync_configs_to_db,
+    wait_for_pending_inserts,
+)
+from .agent_start_client import AgentStartClient
+from .manager import AgentPoolManager
+from .simulation_config import (
+    build_manager_runtime_config,
+    expand_rl_epoch,
+    expand_rl_group_size,
+    rebuild_sqlite_db,
+)
+from .simulation_lease_pool import SimulationLeasePool
+from .simulation_worker import SimulationWorkerGroup
+from .types import SimulationRunConfig, SimulationRunSummary
+
+log = logging.getLogger("manager.simulation_flow")
+
+
+class SimulationFlow:
+    def __init__(self, cfg: SimulationRunConfig) -> None:
+        self.cfg = cfg
+        self.data_manager: Optional[DataManager] = None
+        self.conn: Any = None
+        self.manager_cfg: Optional[Dict[str, Any]] = None
+        self.agent_pool_manager: Optional[AgentPoolManager] = None
+        self.lease_pool: Optional[SimulationLeasePool] = None
+        self.agent_start_client: Optional[AgentStartClient] = None
+        self.worker_group: Optional[SimulationWorkerGroup] = None
+        self._shutdown_started = False
+
+    async def run(self) -> SimulationRunSummary:
+        await self.prepare_storage()
+        await self.check_gateway_ready()
+        await self.start_agent_scheduler()
+        return await self.run_workers()
+
+    async def prepare_storage(self) -> None:
+        if self.cfg.rebuild_table and self.cfg.storage_type == "sqlite":
+            rebuild_sqlite_db(self.cfg.db_url)
+
+        self.data_manager = DataManager(
+            job_id=self.cfg.job_id,
+            storage_type=self.cfg.storage_type,
+            db_url=self.cfg.db_url,
+            enable_buffer=self.cfg.enable_buffer,
+            buffer_size=self.cfg.buffer_size,
+            flush_interval=self.cfg.flush_interval,
+        )
+
+        yaml_config_list = all_env_yaml_load(env_root=self.cfg.agent_root, env_config=self.cfg.agent_config)
+        yaml_config_list = expand_rl_group_size(yaml_config_list, self.cfg.rl_group_size)
+        yaml_config_list = expand_rl_epoch(yaml_config_list, self.cfg.rl_epoch)
+
+        self.conn = await sync_configs_to_db(
+            self.data_manager,
+            yaml_config_list,
+            self.cfg.storage_type,
+            self.cfg.startup_submit_count,
+            self.cfg.followup_submit_batch,
+        )
+        self.manager_cfg = build_manager_runtime_config(self.cfg)
+        log.info(
+            "storage prepared: job_id=%s base_pool_size=%d warm_pool_size=%d startup_submit_count=%d followup_submit_batch=%d",
+            self.cfg.job_id,
+            self.cfg.pool_size,
+            self.cfg.warm_pool_size,
+            self.cfg.startup_submit_count,
+            self.cfg.followup_submit_batch,
+        )
+
+    async def check_gateway_ready(self) -> None:
+        ready_url = self._gateway_origin() + "/readyz"
+
+        def _probe() -> tuple[int, str]:
+            response = requests.get(ready_url, timeout=5.0)
+            return response.status_code, response.text
+
+        try:
+            status_code, body = await asyncio.to_thread(_probe)
+        except Exception as exc:
+            raise RuntimeError(f"gateway is not reachable at {ready_url}: {exc}") from exc
+
+        if status_code != 200:
+            raise RuntimeError(f"gateway is not ready at {ready_url}: status={status_code} body={body[:500]}")
+        await self.check_gateway_model_route()
+        log.info("gateway ready: %s", ready_url)
+
+    async def check_gateway_model_route(self) -> None:
+        metrics_url = self._gateway_origin() + "/metrics"
+
+        def _fetch_metrics() -> tuple[int, str]:
+            response = requests.get(metrics_url, timeout=5.0)
+            return response.status_code, response.text
+
+        try:
+            status_code, body = await asyncio.to_thread(_fetch_metrics)
+        except Exception:
+            log.debug("gateway metrics are not reachable at %s; skip route-key preflight", metrics_url, exc_info=True)
+            return
+
+        if status_code != 200:
+            log.debug("gateway metrics returned status=%s; skip route-key preflight", status_code)
+            return
+
+        available = sorted(set(re.findall(r'gateway_llm_route_inflight\{model="([^"]+)"\}', body)))
+        if not available:
+            log.debug("gateway metrics exposed no llm route labels; skip route-key preflight")
+            return
+        if self.cfg.llm_model not in available:
+            raise RuntimeError(
+                f"--llm-model {self.cfg.llm_model!r} is not configured in gateway llm_routes; "
+                f"available={available}"
+            )
+        log.info("gateway model route ready: model=%s available=%s", self.cfg.llm_model, available)
+
+    async def start_agent_scheduler(self) -> None:
+        if self.manager_cfg is None:
+            self.manager_cfg = build_manager_runtime_config(self.cfg)
+        self.agent_pool_manager = AgentPoolManager(
+            self.manager_cfg,
+            self.conn,
+            job_id=self.cfg.job_id,
+            db_processing_done_checker=lambda: is_job_db_processing_done(self.cfg.job_id),
+        )
+        self.lease_pool = SimulationLeasePool(self.agent_pool_manager, pool_size=self.cfg.warm_pool_size)
+        await self.lease_pool.start()
+
+    async def run_workers(self) -> SimulationRunSummary:
+        if self.lease_pool is None:
+            raise RuntimeError("lease pool is not started")
+        if self.data_manager is None:
+            raise RuntimeError("data manager is not prepared")
+        if self.cfg.agent_runtime != "agent_start":
+            raise ValueError(f"Unsupported agent_runtime for this build: {self.cfg.agent_runtime!r}")
+
+        self.agent_start_client = AgentStartClient(
+            timeout_s=self.cfg.agent_start_timeout_s,
+        )
+        self.worker_group = SimulationWorkerGroup(
+            lease_pool=self.lease_pool,
+            data_manager=self.data_manager,
+            agent_start_client=self.agent_start_client,
+            cfg=self.cfg,
+        )
+        return await self.worker_group.run_all()
+
+    async def shutdown(self) -> None:
+        if self._shutdown_started:
+            return
+        self._shutdown_started = True
+
+        if self.lease_pool is not None:
+            try:
+                await self.lease_pool.aclose()
+            except Exception:
+                log.exception("lease pool close failed (ignored)")
+
+        if self.agent_start_client is not None:
+            try:
+                await self.agent_start_client.close()
+            except Exception:
+                log.exception("agent start client close failed (ignored)")
+
+        try:
+            await wait_for_pending_inserts()
+        except Exception:
+            log.exception("wait_for_pending_inserts failed (ignored)")
+
+        if self.data_manager is not None:
+            try:
+                await self.data_manager.close()
+            except Exception:
+                log.exception("data manager close failed (ignored)")
+
+        if self.conn is not None:
+            try:
+                self.conn.close()
+            except Exception:
+                log.exception("manager DB connection close failed (ignored)")
+
+    def _gateway_origin(self) -> str:
+        parsed = urlsplit(self.cfg.gateway_base_url)
+        if not parsed.scheme or not parsed.netloc:
+            raise ValueError(f"gateway_base_url must be absolute: {self.cfg.gateway_base_url!r}")
+        return f"{parsed.scheme}://{parsed.netloc}"

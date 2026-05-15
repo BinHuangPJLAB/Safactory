@@ -184,10 +184,17 @@ def create_app(cfg: GatewayConfig | None = None, storage: GatewayStorage | None 
             return JSONResponse({"error": {"type": "not_found", "message": "session not found"}}, status_code=404)
         return JSONResponse(status)
 
-    async def close_session(session_id: str) -> dict[str, Any]:
+    async def close_session(session_id: str, request: Request) -> dict[str, Any]:
         resolver: SessionResolver = app.state.gateway_resolver
         telemetry: TelemetryRecorder = app.state.gateway_telemetry
-        binding = await resolver.close_session(session_id)
+        reason = "gateway_close"
+        try:
+            body = await request.json()
+            if isinstance(body, dict) and body.get("reason"):
+                reason = str(body["reason"])
+        except Exception:
+            pass
+        binding = await resolver.close_session(session_id, reason=reason)
         await telemetry.enqueue_session_close(binding)
         return {"session_id": session_id, "status": binding.status}
 
@@ -265,6 +272,12 @@ def create_app(cfg: GatewayConfig | None = None, storage: GatewayStorage | None 
             label = f'endpoint="{_metric_label(endpoint)}",model="{_metric_label(model)}"'
             lines.append(f"gateway_request_duration_seconds_sum{{{label}}} {total_ms / 1000}")
             lines.append(f"gateway_request_duration_seconds_count{{{label}}} {count}")
+
+        lines.append("# TYPE gateway_ttft_seconds summary")
+        for model, count in telemetry_snapshot["ttft_count"].items():
+            label = f'model="{_metric_label(model)}"'
+            lines.append(f"gateway_ttft_seconds_sum{{{label}}} {telemetry_snapshot['ttft_sum_ms'][model] / 1000}")
+            lines.append(f"gateway_ttft_seconds_count{{{label}}} {count}")
 
         lines.append("# TYPE gateway_llm_route_inflight gauge")
         for route_model, state in route_snapshot.items():

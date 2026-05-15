@@ -45,6 +45,8 @@ class TelemetryRecorder:
         self._request_totals: defaultdict[tuple[str, int], int] = defaultdict(int)
         self._duration_sum_ms: defaultdict[tuple[str, str], float] = defaultdict(float)
         self._duration_count: defaultdict[tuple[str, str], int] = defaultdict(int)
+        self._ttft_sum_ms: defaultdict[str, float] = defaultdict(float)
+        self._ttft_count: defaultdict[str, int] = defaultdict(int)
 
     async def start(self) -> None:
         if self._running:
@@ -199,6 +201,8 @@ class TelemetryRecorder:
                 "request_totals": dict(self._request_totals),
                 "duration_sum_ms": dict(self._duration_sum_ms),
                 "duration_count": dict(self._duration_count),
+                "ttft_sum_ms": dict(self._ttft_sum_ms),
+                "ttft_count": dict(self._ttft_count),
                 "dropped_by_reason": dict(self.dropped_by_reason),
             }
 
@@ -233,6 +237,9 @@ class TelemetryRecorder:
             duration_key = (record.endpoint, record.requested_model)
             self._duration_sum_ms[duration_key] += record.total_latency_ms
             self._duration_count[duration_key] += 1
+            if record.ttft_ms is not None:
+                self._ttft_sum_ms[record.requested_model] += record.ttft_ms
+                self._ttft_count[record.requested_model] += 1
 
         if self.cfg.telemetry_mode == "strict":
             if record.event_type == "gateway_session_close":

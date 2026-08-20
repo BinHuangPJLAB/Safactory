@@ -43,6 +43,18 @@ class AgentPoolManager:
             db_processing_done_checker=db_processing_done_checker,
         )
         self._pool_size = int(self.cfg.get("pool_size", 0) or 0)
+        self._pool_create_batch_threshold = max(
+            0,
+            int(self.cfg.get("pool_create_batch_threshold", 60) or 0),
+        )
+        self._pool_create_batch_size = max(
+            1,
+            int(self.cfg.get("pool_create_batch_size", 30)),
+        )
+        self._pool_create_batch_interval_s = max(
+            0.0,
+            float(self.cfg.get("pool_create_batch_interval_s", 60.0) or 0.0),
+        )
         self._mode = str(self.cfg.get("mode", "docker") or "docker").strip().lower()
         if self._mode not in {"docker", "rjob", "sandbox"}:
             raise ValueError(f"Unsupported runtime workflow mode: {self._mode!r}")
@@ -58,6 +70,9 @@ class AgentPoolManager:
             allocator=self._allocator,
             pool_size=self._pool_size,
             startup_concurrency=startup_concurrency,
+            pool_create_batch_threshold=self._pool_create_batch_threshold,
+            pool_create_batch_size=self._pool_create_batch_size,
+            pool_create_batch_interval_s=self._pool_create_batch_interval_s,
             row_wait_timeout_s=self._row_wait_timeout_s,
             row_fetch_timeout_s=self._row_fetch_timeout_s,
         )

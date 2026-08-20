@@ -240,6 +240,18 @@ def load_simulation_run_config(args: Any) -> SimulationRunConfig:
         docker_image_archive_dir=str(getattr(args, "docker_image_archive_dir", "") or "").strip(),
         cleanup_docker_image=bool(getattr(args, "cleanup_docker_image", False)),
         docker_startup_concurrency=max(1, int(args.docker_startup_concurrency or 1)),
+        pool_create_batch_threshold=max(
+            0,
+            int(getattr(args, "pool_create_batch_threshold", 60) or 0),
+        ),
+        pool_create_batch_size=max(
+            1,
+            int(getattr(args, "pool_create_batch_size", 30)),
+        ),
+        pool_create_batch_interval_s=max(
+            0.0,
+            float(getattr(args, "pool_create_batch_interval_s", 60.0) or 0.0),
+        ),
         agent_start_timeout_grace_s=_float_at_least(
             getattr(args, "agent_start_timeout_grace_s", 120.0),
             default=120.0,
@@ -427,6 +439,9 @@ def build_manager_runtime_config(cfg: SimulationRunConfig) -> Dict[str, Any]:
     return {
         "mode": cfg.mode,
         "pool_size": int(cfg.warm_pool_size),
+        "pool_create_batch_threshold": int(cfg.pool_create_batch_threshold),
+        "pool_create_batch_size": int(cfg.pool_create_batch_size),
+        "pool_create_batch_interval_s": float(cfg.pool_create_batch_interval_s),
         "row_wait_timeout_s": float(cfg.row_wait_timeout_s),
         "row_fetch_timeout_s": float(cfg.row_fetch_timeout_s),
         "database": database_cfg,

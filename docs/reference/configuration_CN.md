@@ -59,6 +59,9 @@ python launcher.py \
 | Episode | `--max-steps` | `1000` | 传给 runtime request 的最大步数。Gateway `max_steps` 还能额外限制请求数。 |
 | Pool | `--pool-size` | `1` | 基础并发。Warm pool size 为 `ceil(pool_size * multiplier)`。 |
 | Pool | `--multiplier` | `1.2` | Warm-pool 倍率。 |
+| Pool | `--pool-create-batch-threshold` | `60` | 实际 warm-pool size 超过该值时分批创建 Docker/Sandbox instance。`0` 表示关闭分批。 |
+| Pool | `--pool-create-batch-size` | `30` | 每个创建批次最多提交的 instance 数量。 |
+| Pool | `--pool-create-batch-interval-s` | `60.0` | 创建批次完成后的等待秒数。`0` 表示不等待。 |
 | Pool | `--max-workers` | `0` | Worker 数上限。`0` 使用 warm-pool size。 |
 
 ## 完整 CLI 参考

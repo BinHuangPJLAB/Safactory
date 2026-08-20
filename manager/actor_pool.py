@@ -27,6 +27,9 @@ class RuntimeAgentPool:
         allocator: RuntimeLeaseAllocator,
         pool_size: int,
         startup_concurrency: int,
+        pool_create_batch_threshold: int = 60,
+        pool_create_batch_size: int = 30,
+        pool_create_batch_interval_s: float = 60.0,
         row_wait_timeout_s: float = 60.0,
         row_fetch_timeout_s: float = 30.0,
     ) -> None:
@@ -34,6 +37,9 @@ class RuntimeAgentPool:
         self._allocator = allocator
         self._pool_size = max(0, int(pool_size))
         self._fill_sem = asyncio.Semaphore(max(1, int(startup_concurrency or 1)))
+        self._pool_create_batch_threshold = max(0, int(pool_create_batch_threshold or 0))
+        self._pool_create_batch_size = max(1, int(pool_create_batch_size))
+        self._pool_create_batch_interval_s = max(0.0, float(pool_create_batch_interval_s or 0.0))
         self._row_wait_timeout_s = max(1.0, float(row_wait_timeout_s or 60.0))
         self._row_fetch_timeout_s = max(1.0, float(row_fetch_timeout_s or 30.0))
         self._lock = asyncio.Lock()
@@ -81,8 +87,7 @@ class RuntimeAgentPool:
             self._pool_size,
             len(rows),
         )
-        tasks = [asyncio.create_task(self._fill_slot(row)) for row in rows]
-        await asyncio.gather(*tasks, return_exceptions=True)
+        await self._fill_rows(rows, reason="prewarm")
         await self.ensure_capacity()
 
     async def ensure_capacity(self, *, wait_for_rows: bool = False) -> None:
@@ -105,8 +110,58 @@ class RuntimeAgentPool:
                     self._allocator.runtime,
                 )
                 return
-            tasks = [asyncio.create_task(self._fill_slot(row)) for row in rows]
-            await asyncio.gather(*tasks, return_exceptions=True)
+            await self._fill_rows(rows, reason="capacity-fill")
+
+    async def _fill_rows(self, rows: List[Dict[str, Any]], *, reason: str) -> None:
+        if not rows:
+            return
+
+        batch_size = len(rows)
+        if (
+            self._allocator.runtime in {"docker", "sandbox"}
+            and self._pool_create_batch_threshold > 0
+            and self._pool_size > self._pool_create_batch_threshold
+        ):
+            batch_size = self._pool_create_batch_size
+
+        batch_count = (len(rows) + batch_size - 1) // batch_size
+        for batch_index, start in enumerate(range(0, len(rows), batch_size), start=1):
+            batch = rows[start:start + batch_size]
+            log.info(
+                "%s %s batch %d/%d starting: instances=%d",
+                self._allocator.runtime,
+                reason,
+                batch_index,
+                batch_count,
+                len(batch),
+            )
+            results = await asyncio.gather(
+                *(self._fill_slot(row) for row in batch),
+                return_exceptions=True,
+            )
+            succeeded = sum(
+                result is not None and not isinstance(result, BaseException)
+                for result in results
+            )
+            log.info(
+                "%s %s batch %d/%d completed: succeeded=%d failed=%d",
+                self._allocator.runtime,
+                reason,
+                batch_index,
+                batch_count,
+                succeeded,
+                len(batch) - succeeded,
+            )
+            if batch_index < batch_count and self._pool_create_batch_interval_s > 0:
+                log.info(
+                    "%s %s batch %d/%d waiting %.1fs before next batch",
+                    self._allocator.runtime,
+                    reason,
+                    batch_index,
+                    batch_count,
+                    self._pool_create_batch_interval_s,
+                )
+                await asyncio.sleep(self._pool_create_batch_interval_s)
 
     async def close_and_refill(
         self,

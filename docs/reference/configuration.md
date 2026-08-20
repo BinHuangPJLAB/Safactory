@@ -59,6 +59,9 @@ For the first smoke test, use `env/geo3k/datasets/geo3k_sample.jsonl` in a local
 | Episode | `--max-steps` | `1000` | Maximum step budget passed to the runtime request. Gateway `max_steps` can enforce an additional request-level limit. |
 | Pool | `--pool-size` | `1` | Base concurrency. Warm pool size is `ceil(pool_size * multiplier)`. |
 | Pool | `--multiplier` | `1.2` | Warm-pool multiplier. |
+| Pool | `--pool-create-batch-threshold` | `60` | Batch Docker/Sandbox instance creation when the effective warm-pool size exceeds this value. `0` disables batching. |
+| Pool | `--pool-create-batch-size` | `30` | Maximum instances submitted per creation batch. |
+| Pool | `--pool-create-batch-interval-s` | `60.0` | Delay in seconds between completed creation batches. `0` disables the delay. |
 | Pool | `--max-workers` | `0` | Worker count cap. `0` uses warm-pool size. |
 
 ## Full CLI Reference

@@ -77,6 +77,24 @@ def parse_simulation_args(argv: Sequence[str] | None = None) -> argparse.Namespa
 
     parser.add_argument("--pool-size", type=int, default=1, help="Base Docker lease pool size")
     parser.add_argument("--multiplier", type=float, default=1.2, help="Warm-pool multiplier")
+    parser.add_argument(
+        "--pool-create-batch-threshold",
+        type=int,
+        default=60,
+        help="Batch instance creation when the effective warm-pool size exceeds this value; 0 disables batching",
+    )
+    parser.add_argument(
+        "--pool-create-batch-size",
+        type=int,
+        default=30,
+        help="Maximum number of instances submitted in one creation batch",
+    )
+    parser.add_argument(
+        "--pool-create-batch-interval-s",
+        type=float,
+        default=60.0,
+        help="Delay between completed instance creation batches; 0 disables the delay",
+    )
     parser.add_argument("--max-workers", type=int, default=0, help="0 means use warm-pool size")
     parser.add_argument("--docker-bin", type=str, default="docker", help="Docker executable")
     parser.add_argument("--docker-pull-policy", type=str, default="never", choices=["never", "always"])

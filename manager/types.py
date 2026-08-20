@@ -58,6 +58,9 @@ class SimulationRunConfig:
     docker_image_archive_dir: str
     cleanup_docker_image: bool
     docker_startup_concurrency: int
+    pool_create_batch_threshold: int = 60
+    pool_create_batch_size: int = 30
+    pool_create_batch_interval_s: float = 60.0
     agent_start_timeout_grace_s: float = 120.0
     container_refill_timeout_s: float = 300.0
     row_wait_timeout_s: float = 60.0
